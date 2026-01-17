@@ -835,8 +835,29 @@
                         >
                             {/* Connection Lines */}
                             <svg className="absolute inset-0 pointer-events-none" style={{ width: '2500px', height: '2000px', zIndex: 10 }}>
+                                {/* Top row connections */}
                                 <line x1="220" y1="200" x2="350" y2="200" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
                                 <line x1="500" y1="200" x2="650" y2="200" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                <line x1="770" y1="200" x2="900" y2="200" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                <line x1="1020" y1="200" x2="1150" y2="200" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
+                                {/* Selection to Scan w/ no criteria */}
+                                <line x1="470" y1="300" x2="710" y2="450" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
+                                {/* Middle row connections */}
+                                <line x1="770" y1="550" x2="900" y2="550" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                <line x1="1020" y1="550" x2="1150" y2="550" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
+                                {/* Selection to Verify using name */}
+                                <line x1="470" y1="300" x2="710" y2="800" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
+                                {/* Bottom row connections */}
+                                <line x1="770" y1="900" x2="900" y2="900" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                <line x1="1020" y1="900" x2="1150" y2="900" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
+                                {/* Scan Results to Error */}
+                                <line x1="1020" y1="300" x2="1020" y2="1150" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                                
                                 <defs>
                                     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                                         <polygon points="0 0, 10 3, 0 6" fill="#666" />
