@@ -159,8 +159,11 @@
 
             // GitHub Functions
             useEffect(() => {
+                // Always try to load cards (even without token for read-only mode)
+                loadFromGitHub();
+                
+                // Auto-sync only if token is available
                 if (githubConfig.token && githubConfig.owner && githubConfig.repo) {
-                    loadFromGitHub();
                     const interval = setInterval(loadFromGitHub, 30000);
                     return () => clearInterval(interval);
                 }
@@ -172,6 +175,9 @@
                 localStorage.setItem('github_repo', config.repo);
                 setGithubConfig(config);
             };
+
+            // Check if user has edit permissions (has token)
+            const canEdit = Boolean(githubConfig.token);
 
             const loadFromGitHub = async () => {
                 if (!githubConfig.token || !githubConfig.owner || !githubConfig.repo) return;
@@ -346,6 +352,10 @@
 
             // Card handlers
             const handleScreenClick = (screen) => {
+                if (!canEdit) {
+                    alert('⚠️ View-Only Mode\n\nTo add or edit cards, click "GitHub Setup" and enter your GitHub token.');
+                    return;
+                }
                 setSelectedScreen(screen);
                 setShowApiForm(true);
                 setEditingCard(null);
@@ -371,6 +381,10 @@
             };
 
             const handleEditCard = (card) => {
+                if (!canEdit) {
+                    alert('⚠️ View-Only Mode\n\nTo edit cards, click "GitHub Setup" and enter your GitHub token.');
+                    return;
+                }
                 setEditingCard(card);
                 setApiFormData({
                     endpoint: card.endpoint,
@@ -399,6 +413,10 @@
             };
 
             const handleDeleteCard = (cardId) => {
+                if (!canEdit) {
+                    alert('⚠️ View-Only Mode\n\nTo delete cards, click "GitHub Setup" and enter your GitHub token.');
+                    return;
+                }
                 const updatedCards = apiCards.filter(card => card.id !== cardId);
                 setApiCards(updatedCards);
                 saveToGitHub(updatedCards);
@@ -764,7 +782,9 @@
                         <div className="flex items-center justify-between">
                             <div>
                                 <h1 className="text-2xl font-bold text-red-600">NASCAR CSA - Wireframe Board</h1>
-                                <p className="text-sm text-gray-600 mt-1">Click on any screen to add API endpoint information</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    {canEdit ? 'Click on any screen to add API endpoint information' : '👁️ View-Only Mode - Setup GitHub to edit'}
+                                </p>
                             </div>
                             <div className="flex items-center gap-3">
                                 {lastSyncTime && (
@@ -791,7 +811,7 @@
                                 </button>
                                 <button
                                     onClick={loadFromGitHub}
-                                    disabled={isSyncing || !githubConfig.token}
+                                    disabled={isSyncing}
                                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm disabled:bg-gray-400"
                                 >
                                     Refresh
