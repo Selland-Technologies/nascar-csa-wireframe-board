@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NASCAR CSA - Wireframe Board</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -262,11 +263,23 @@
 
             // Mouse handlers
             const handleWheel = (e) => {
-                e.preventDefault();
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
                 const delta = e.deltaY * -0.001;
                 const newZoom = Math.min(Math.max(0.3, zoom + delta), 2);
                 setZoom(newZoom);
             };
+
+            useEffect(() => {
+                const boardElement = boardRef.current;
+                if (boardElement) {
+                    boardElement.addEventListener('wheel', handleWheel, { passive: false });
+                    return () => {
+                        boardElement.removeEventListener('wheel', handleWheel);
+                    };
+                }
+            }, [zoom]);
 
             const handleMouseDown = (e) => {
                 if (e.target === boardRef.current || e.target.closest('.board-container')) {
@@ -427,31 +440,321 @@
 
             // Render screen content (simplified version - showing Login as example)
             const renderScreenContent = (screen) => {
-                if (screen.type === 'login') {
-                    return (
-                        <div className="h-full flex flex-col items-center justify-between p-3">
-                            <div className="w-full flex justify-end"><div className="w-3 h-3 bg-gray-500 rounded-full"></div></div>
-                            <div className="flex-1 flex flex-col items-center justify-center">
-                                <div className="bg-white px-4 py-2 rounded mb-4">
+                switch (screen.type) {
+                    case 'login':
+                        return (
+                            <div className="h-full flex flex-col items-center justify-between p-3">
+                                <div className="w-full flex justify-end"><div className="w-3 h-3 bg-gray-500 rounded-full"></div></div>
+                                <div className="flex-1 flex flex-col items-center justify-center">
+                                    <div className="bg-white px-4 py-2 rounded mb-4">
+                                        <div className="text-xs font-bold">NASCAR</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="font-bold text-sm">NASCAR</div>
+                                        <div className="font-bold text-xs">Credential Scanning</div>
+                                    </div>
+                                </div>
+                                <button className="bg-gray-600 text-white px-6 py-2 rounded text-xs font-bold w-full">
+                                    NASCAR AUTHO LOGIN
+                                </button>
+                            </div>
+                        );
+                    
+                    case 'selection':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
                                     <div className="text-xs font-bold">NASCAR</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="font-bold text-sm">NASCAR</div>
-                                    <div className="font-bold text-xs">Credential Scanning</div>
+                                <div className="text-xs font-bold mb-1">Select Event</div>
+                                <select className="w-full border text-xs p-1 mb-2 rounded">
+                                    <option>Select a series</option>
+                                </select>
+                                <select className="w-full border text-xs p-1 mb-3 rounded">
+                                    <option>Select an event</option>
+                                </select>
+                                <div className="text-xs font-bold mb-1">Select Criteria</div>
+                                <div className="text-xs text-gray-600 mb-1">I am verifying access to ...</div>
+                                <div className="bg-white border rounded p-2 mb-2 max-h-24 overflow-auto">
+                                    <div className="grid grid-cols-3 gap-1 text-xs">
+                                        {[...Array(12)].map((_, i) => (
+                                            <div key={i} className="flex items-center">
+                                                <input type="checkbox" className="mr-1" />
+                                                <span className="text-xs">Option</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button className="bg-gray-500 text-white px-3 py-1 rounded text-xs mb-2 w-full">Set</button>
+                                <button className="border border-gray-300 px-3 py-1 rounded text-xs mb-1 w-full flex items-center justify-between">
+                                    <span>Verify using name</span>
+                                    <span>&gt;</span>
+                                </button>
+                                <button className="border border-gray-300 px-3 py-1 rounded text-xs w-full flex items-center justify-between">
+                                    <span>Scan without criteria</span>
+                                    <span>&gt;</span>
+                                </button>
+                            </div>
+                        );
+                    
+                    case 'scan':
+                    case 'direct-scan':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">{screen.type === 'scan' ? 'EVENT NAME' : 'DIRECT SCAN'}</div>
+                                    <div className="text-xs">{screen.type === 'scan' ? 'location | Date' : 'Scan to display credential information'}</div>
+                                    {screen.type === 'scan' && <div className="inline-block bg-red-500 text-white px-2 py-0.5 rounded text-xs mt-1">Race Control</div>}
+                                </div>
+                                <div className="border-2 border-gray-400 rounded p-4 mb-3 flex flex-col items-center justify-center bg-white flex-1">
+                                    <Camera size={32} className="text-gray-400 mb-2" />
+                                    <div className="text-xs">Camera inactive</div>
+                                </div>
+                                <button className="bg-white border-2 border-gray-300 px-6 py-1.5 rounded text-xs font-bold w-full mb-2">SCAN</button>
+                                <div className="text-xs text-gray-600">Use sync icon to manually update app data.</div>
+                                <div className="mt-2 flex justify-center">
+                                    <Home size={16} className="text-gray-400" />
                                 </div>
                             </div>
-                            <button className="bg-gray-600 text-white px-6 py-2 rounded text-xs font-bold w-full">
-                                NASCAR AUTHO LOGIN
-                            </button>
-                        </div>
-                    );
+                        );
+                    
+                    case 'scan-valid':
+                    case 'scan-invalid':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">EVENT NAME</div>
+                                    <div className="text-xs">location | Date</div>
+                                    <div className="inline-block bg-gray-500 text-white px-2 py-0.5 rounded text-xs mt-1">Race Control</div>
+                                </div>
+                                <div className="bg-white border-2 border-gray-300 rounded p-3 flex-1 overflow-auto">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center">
+                                            <div className="w-8 h-8 bg-black rounded-full mr-2"></div>
+                                            <div>
+                                                <div className="text-xs font-bold flex items-center">
+                                                    CREDENTIAL
+                                                    {screen.type === 'scan-valid' ? <CheckCircle size={14} className="text-green-500 ml-1" /> : <XCircle size={14} className="text-red-500 ml-1" />}
+                                                </div>
+                                                <div className={`text-xs font-bold ${screen.type === 'scan-valid' ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {screen.type === 'scan-valid' ? 'VALID' : 'INVALID'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <X size={16} />
+                                    </div>
+                                    <div className="text-xs font-bold mb-1">Jane Doe</div>
+                                    <div className="flex gap-1 mb-2">
+                                        <div className="bg-blue-500 text-white px-1.5 py-0.5 rounded text-xs font-bold">RC</div>
+                                        <div className="bg-green-500 text-white px-1.5 py-0.5 rounded text-xs font-bold">STAFF</div>
+                                    </div>
+                                    <div className="text-xs space-y-0.5">
+                                        <div><span className="font-semibold">Series:</span> Cup</div>
+                                        <div><span className="font-semibold">Pass type:</span> Weekend Staff</div>
+                                        <div><span className="font-semibold">Member ID:</span> 1234567</div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    
+                    case 'verify-input':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">Verify Using Name</div>
+                                    <div className="text-xs">Enter credential holder's name</div>
+                                </div>
+                                <div className="relative mb-4">
+                                    <input 
+                                        type="text" 
+                                        placeholder="first name, last name"
+                                        className="w-full border border-gray-300 rounded px-3 py-2 text-xs"
+                                    />
+                                    <Search size={14} className="absolute right-2 top-2 text-gray-400" />
+                                </div>
+                                <div className="flex-1"></div>
+                                <div className="mt-2 flex justify-center">
+                                    <Home size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        );
+                    
+                    case 'verify-search':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">Verify Using Name</div>
+                                </div>
+                                <div className="relative mb-3">
+                                    <input 
+                                        type="text" 
+                                        placeholder="first name, last name"
+                                        className="w-full border border-gray-300 rounded px-3 py-2 text-xs"
+                                    />
+                                    <Search size={14} className="absolute right-2 top-2 text-gray-400" />
+                                </div>
+                                <div className="space-y-2 flex-1">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="bg-white border border-gray-200 rounded p-2">
+                                            <div className="text-xs font-semibold">Jane Doe, pass type</div>
+                                            <div className="text-xs text-gray-600">Event name | affiliate name</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-2 flex justify-center">
+                                    <Home size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        );
+
+                    case 'verify-detail':
+                    case 'direct-scan-results':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">{screen.type === 'verify-detail' ? 'Verify Using Name' : 'DIRECT SCAN'}</div>
+                                </div>
+                                <div className="bg-white border-2 border-gray-300 rounded p-3 flex-1 overflow-auto">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 bg-black rounded-full"></div>
+                                        <X size={16} />
+                                    </div>
+                                    <div className="text-xs font-bold mb-1">Jane Doe</div>
+                                    <div className="flex gap-1 mb-2">
+                                        <div className="bg-blue-500 text-white px-1.5 py-0.5 rounded text-xs font-bold">RC</div>
+                                        <div className="bg-green-500 text-white px-1.5 py-0.5 rounded text-xs font-bold">STAFF</div>
+                                    </div>
+                                    <div className="text-xs space-y-0.5">
+                                        <div><span className="font-semibold">Series:</span> Cup</div>
+                                        <div><span className="font-semibold">Member ID:</span> 1234567</div>
+                                    </div>
+                                </div>
+                                <div className="mt-2 flex justify-center">
+                                    <Home size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        );
+                    
+                    case 'toast':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center relative">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                    <div className="absolute -right-1 -top-1 w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center">
+                                        <div className="text-xs">⟲</div>
+                                    </div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">DIRECT SCAN</div>
+                                </div>
+                                <div className="border-2 border-gray-400 rounded p-4 mb-3 flex flex-col items-center justify-center bg-white flex-1">
+                                    <Camera size={32} className="text-gray-400 mb-2" />
+                                    <div className="text-xs font-semibold">Sync complete</div>
+                                </div>
+                                <button className="bg-white border-2 border-gray-300 px-6 py-1.5 rounded text-xs font-bold w-full mb-2">SCAN</button>
+                                <div className="mt-2 flex justify-center">
+                                    <Home size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        );
+                    
+                    case 'error':
+                        return (
+                            <div className="h-full flex flex-col p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <Menu size={16} />
+                                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <Wifi size={14} className="text-red-500" />
+                                </div>
+                                <div className="bg-white px-3 py-1 rounded mb-3 text-center">
+                                    <div className="text-xs font-bold">NASCAR</div>
+                                </div>
+                                <div className="text-center mb-2">
+                                    <div className="text-sm font-bold">EVENT NAME</div>
+                                    <div className="inline-block bg-gray-500 text-white px-2 py-0.5 rounded text-xs mt-1">Race Control</div>
+                                </div>
+                                <div className="bg-white border-2 border-gray-300 rounded p-3 flex-1">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div></div>
+                                        <X size={16} />
+                                    </div>
+                                    <div className="text-center mb-3">
+                                        <div className="flex items-center justify-center mb-2">
+                                            <div className="text-xs font-bold mr-2">CREDENTIAL</div>
+                                            <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                                <X size={16} className="text-white" />
+                                            </div>
+                                        </div>
+                                        <div className="text-xs font-bold">NOT FOUND</div>
+                                    </div>
+                                    <div className="text-xs text-center mb-3">
+                                        Credential does not exist in NASCAR systems
+                                    </div>
+                                    <div className="text-xs mb-2">
+                                        <div className="font-semibold">App last synced:</div>
+                                        <div>today at 1:43 p.m.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    
+                    default:
+                        return (
+                            <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+                                Screen Content
+                            </div>
+                        );
                 }
-                // Simplified - showing basic content for other screens
-                return (
-                    <div className="h-full flex items-center justify-center p-3">
-                        <div className="text-xs text-gray-500 text-center">{screen.title}</div>
-                    </div>
-                );
             };
 
             return (
@@ -518,9 +821,8 @@
                     <div 
                         ref={boardRef}
                         className="board-container w-full h-full pt-24"
-                        onWheel={handleWheel}
                         onMouseDown={handleMouseDown}
-                        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+                        style={{ cursor: isPanning ? 'grabbing' : 'grab', touchAction: 'none' }}
                     >
                         <div 
                             style={{
