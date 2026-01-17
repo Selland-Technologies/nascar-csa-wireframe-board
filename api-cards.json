@@ -3,8 +3,8 @@
     {
       "id": 1768641568810,
       "screenId": 1,
-      "x": 300,
-      "y": 40,
+      "x": 78.4375,
+      "y": 460.3125,
       "endpoint": "AUTH0",
       "method": "POST",
       "payload": "No",
@@ -13,5 +13,5 @@
       "arrowTo": null
     }
   ],
-  "lastUpdated": "2026-01-17T09:19:29.163Z"
+  "lastUpdated": "2026-01-17T09:19:33.133Z"
 }
