@@ -10,8 +10,11 @@
       "payload": "No",
       "response": "No",
       "status": "available",
-      "arrowTo": null
+      "arrowTo": {
+        "x": 158.75,
+        "y": 370
+      }
     }
   ],
-  "lastUpdated": "2026-01-17T09:19:33.133Z"
+  "lastUpdated": "2026-01-17T09:19:36.272Z"
 }
