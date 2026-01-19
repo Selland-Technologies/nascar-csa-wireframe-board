@@ -14,22 +14,7 @@
         "x": 158.75,
         "y": 370
       }
-    },
-    {
-      "id": 1768826173593,
-      "screenId": 2,
-      "x": 550,
-      "y": 40,
-      "endpoint": "cvbc cv ",
-      "method": "POST",
-      "payload": "sdvsdv",
-      "response": "svs",
-      "status": "available",
-      "arrowTo": {
-        "x": 464.9747010937185,
-        "y": 211.61687857709944
-      }
     }
   ],
-  "lastUpdated": "2026-01-19T12:36:18.767Z"
+  "lastUpdated": "2026-01-19T12:36:25.973Z"
 }
