@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>NASCAR CSA - Wireframe Board</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -116,6 +117,11 @@
             const [isSyncing, setIsSyncing] = useState(false);
             const [lastSyncTime, setLastSyncTime] = useState(null);
             const [syncStatus, setSyncStatus] = useState('');
+            const [isAuthenticated, setIsAuthenticated] = useState(() => {
+                return sessionStorage.getItem('board_authenticated') === 'true';
+            });
+            const [passwordInput, setPasswordInput] = useState('');
+            const [passwordError, setPasswordError] = useState('');
 
             const [screens] = useState([
                 { id: 1, x: 100, y: 100, title: 'Login', type: 'login' },
@@ -148,7 +154,9 @@
                 payload: '',
                 response: '',
                 status: 'available',
-                arrowTo: null
+                arrowTo: null,
+                system: '',
+                questions: ''
             });
 
             const [zoom, setZoom] = useState(0.8);
@@ -178,6 +186,21 @@
 
             // Check if user has edit permissions (has token)
             const canEdit = Boolean(githubConfig.token);
+
+            // Password protection
+            const BOARD_PASSWORD = 'nascarscannerapp2026'; // Change this to your desired password
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                if (passwordInput === BOARD_PASSWORD) {
+                    setIsAuthenticated(true);
+                    sessionStorage.setItem('board_authenticated', 'true');
+                    setPasswordError('');
+                    setPasswordInput('');
+                } else {
+                    setPasswordError('Incorrect password. Please try again.');
+                    setPasswordInput('');
+                }
+            };
 
             const loadFromGitHub = async () => {
                 // Allow loading without token (read-only mode)
@@ -370,7 +393,7 @@
                 setSelectedScreen(screen);
                 setShowApiForm(true);
                 setEditingCard(null);
-                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null });
+                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null, system: '', questions: '' });
             };
 
             const handleAddApiCard = () => {
@@ -388,7 +411,7 @@
                 setApiCards(updatedCards);
                 saveToGitHub(updatedCards);
                 setShowApiForm(false);
-                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null });
+                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null, system: '', questions: '' });
             };
 
             const handleEditCard = (card) => {
@@ -403,7 +426,9 @@
                     payload: card.payload,
                     response: card.response || '',
                     status: card.status || 'available',
-                    arrowTo: card.arrowTo || null
+                    arrowTo: card.arrowTo || null,
+                    system: card.system || '',
+                    questions: card.questions || ''
                 });
                 setShowApiForm(true);
             };
@@ -420,7 +445,7 @@
                 saveToGitHub(updatedCards);
                 setShowApiForm(false);
                 setEditingCard(null);
-                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null });
+                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null, system: '', questions: '' });
             };
 
             const handleDeleteCard = (cardId) => {
@@ -786,6 +811,42 @@
                 }
             };
 
+            // Show password protection if not authenticated
+            if (!isAuthenticated) {
+                return (
+                    <div className="w-full h-screen bg-gray-50 flex items-center justify-center">
+                        <div className="bg-white rounded-lg p-8 shadow-xl max-w-md w-full">
+                            <h2 className="text-2xl font-bold text-red-600 mb-2">NASCAR CSA - Wireframe Board</h2>
+                            <p className="text-sm text-gray-600 mb-6">Enter password to access the board</p>
+                            <form onSubmit={handlePasswordSubmit}>
+                                <div className="mb-4">
+                                    <input
+                                        type="password"
+                                        value={passwordInput}
+                                        onChange={(e) => {
+                                            setPasswordInput(e.target.value);
+                                            setPasswordError('');
+                                        }}
+                                        placeholder="Enter password"
+                                        className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        autoFocus
+                                    />
+                                    {passwordError && (
+                                        <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+                                    )}
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 font-semibold"
+                                >
+                                    Access Board
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
             return (
                 <div className="w-full h-screen bg-gray-50 overflow-hidden relative">
                     {/* Header */}
@@ -1058,10 +1119,29 @@
                                             </div>
                                         </div>
                                         
+                                        {card.system && (
+                                            <div className="mb-1">
+                                                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                                                    card.system === 'GAP' ? 'bg-purple-500 text-white' : 
+                                                    card.system === 'DL' ? 'bg-indigo-500 text-white' : 
+                                                    card.system === 'Both' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' :
+                                                    'bg-gray-500 text-white'
+                                                }`}>
+                                                    {card.system}
+                                                </span>
+                                            </div>
+                                        )}
+                                        
                                         <div className="text-xs font-mono break-all mb-2 font-semibold">{card.endpoint}</div>
                                         
                                         {isExpanded && (
                                             <>
+                                                {card.questions && (
+                                                    <div className="text-xs text-gray-700 mt-2">
+                                                        <div className="font-semibold mb-1">Questions/Notes:</div>
+                                                        <div className="bg-blue-50 p-2 rounded border border-blue-300 whitespace-pre-wrap">{card.questions}</div>
+                                                    </div>
+                                                )}
                                                 {card.payload && (
                                                     <div className="text-xs text-gray-700 mt-2">
                                                         <div className="font-semibold mb-1">Payload:</div>
@@ -1077,7 +1157,7 @@
                                             </>
                                         )}
                                         
-                                        {!isExpanded && (card.payload || card.response) && (
+                                        {!isExpanded && (card.payload || card.response || card.questions) && (
                                             <div 
                                                 className="text-xs text-gray-500 italic cursor-pointer hover:text-gray-700 no-drag"
                                                 onClick={(e) => toggleCardExpanded(card.id, e)}
@@ -1112,6 +1192,20 @@
                                             <option>PUT</option>
                                             <option>DELETE</option>
                                             <option>PATCH</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">System</label>
+                                        <select
+                                            value={apiFormData.system}
+                                            onChange={(e) => setApiFormData({ ...apiFormData, system: e.target.value })}
+                                            className="w-full border border-gray-300 rounded px-3 py-2"
+                                        >
+                                            <option value="">None</option>
+                                            <option value="GAP">GAP</option>
+                                            <option value="DL">DL</option>
+                                            <option value="Both">Both (GAP & DL)</option>
                                         </select>
                                     </div>
 
@@ -1161,6 +1255,17 @@
                                         />
                                     </div>
 
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Questions/Notes</label>
+                                        <textarea
+                                            value={apiFormData.questions}
+                                            onChange={(e) => setApiFormData({ ...apiFormData, questions: e.target.value })}
+                                            placeholder="Add questions, notes, or specific points for developers..."
+                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                                            rows="4"
+                                        />
+                                    </div>
+
                                     <div className="flex gap-2 pt-4">
                                         <button
                                             onClick={editingCard ? handleUpdateCard : handleAddApiCard}
@@ -1172,7 +1277,7 @@
                                             onClick={() => {
                                                 setShowApiForm(false);
                                                 setEditingCard(null);
-                                                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null });
+                                                setApiFormData({ endpoint: '', method: 'POST', payload: '', response: '', status: 'available', arrowTo: null, system: '', questions: '' });
                                             }}
                                             className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
                                         >
