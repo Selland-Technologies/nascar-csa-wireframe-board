@@ -16,24 +16,7 @@
       },
       "system": "GAP",
       "questions": "test"
-    },
-    {
-      "id": 1769094253532,
-      "screenId": 2,
-      "x": 550,
-      "y": 40,
-      "endpoint": "tt",
-      "method": "POST",
-      "payload": "tt",
-      "response": "tt",
-      "status": "available",
-      "arrowTo": {
-        "x": 461.7851650430132,
-        "y": 210.73529357121635
-      },
-      "system": "GAP",
-      "questions": "tt"
     }
   ],
-  "lastUpdated": "2026-01-22T15:04:33.235Z"
+  "lastUpdated": "2026-01-22T15:04:46.693Z"
 }
