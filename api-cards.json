@@ -34,8 +34,8 @@
     {
       "id": 1769432786777,
       "screenId": 2,
-      "x": 550,
-      "y": 40,
+      "x": 380.9375,
+      "y": 460.3125,
       "endpoint": "/Producr",
       "method": "POST",
       "payload": "sdad",
@@ -46,5 +46,5 @@
       "questions": "asdssada"
     }
   ],
-  "lastUpdated": "2026-01-26T13:06:26.791Z"
+  "lastUpdated": "2026-01-26T13:06:32.471Z"
 }
