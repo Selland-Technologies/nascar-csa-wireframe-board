@@ -48,8 +48,8 @@
     {
       "id": 1769533122668,
       "screenId": 2,
-      "x": 1469.9652777777776,
-      "y": -127.39583333333331,
+      "x": 1375.497685185185,
+      "y": -251.2152777777777,
       "endpoint": " https://evntmgmt-webapp-dev.azurewebsites.net/api/v1/eventtype",
       "method": "GET",
       "payload": "",
@@ -60,5 +60,5 @@
       "questions": "This API already develop but need to create separte controller for CSA Project"
     }
   ],
-  "lastUpdated": "2026-01-27T16:59:26.136Z"
+  "lastUpdated": "2026-01-27T16:59:31.017Z"
 }
