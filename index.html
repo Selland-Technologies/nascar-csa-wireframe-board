@@ -202,6 +202,47 @@
                 }
             };
 
+            // UTF-8-safe base64 and compression for large payloads (e.g. big Response/Payload in cards)
+            const b64EncodeUTF8 = (str) => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+            const b64DecodeUTF8 = (b64) => decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            const b64ToBytes = (b64) => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            const bytesToB64 = (bytes) => {
+                let binary = '';
+                const chunk = 8192;
+                for (let i = 0; i < bytes.length; i += chunk) {
+                    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                }
+                return btoa(binary);
+            };
+            const GZIP_MAGIC = new Uint8Array([0x1f, 0x8b]);
+            const isGzip = (bytes) => bytes.length >= 2 && bytes[0] === GZIP_MAGIC[0] && bytes[1] === GZIP_MAGIC[1];
+            const compressJSON = async (jsonString) => {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const stream = blob.stream().pipeThrough(new CompressionStream('gzip'));
+                return new Uint8Array(await new Response(stream).arrayBuffer());
+            };
+            const decompressGzip = async (bytes) => {
+                const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+                return await new Response(stream).text();
+            };
+            const decodeStorageContent = async (base64Content) => {
+                const bytes = b64ToBytes(base64Content.replace(/\s/g, ''));
+                if (isGzip(bytes)) {
+                    const jsonStr = await decompressGzip(bytes);
+                    return JSON.parse(jsonStr);
+                }
+                return JSON.parse(b64DecodeUTF8(base64Content));
+            };
+            const encodeStorageContent = async (obj) => {
+                const jsonString = JSON.stringify(obj, null, 2);
+                const SIZE_THRESHOLD = 200000;
+                if (jsonString.length > SIZE_THRESHOLD && typeof CompressionStream !== 'undefined') {
+                    const compressed = await compressJSON(jsonString);
+                    return bytesToB64(compressed);
+                }
+                return b64EncodeUTF8(jsonString);
+            };
+
             const loadFromGitHub = async () => {
                 // Allow loading without token (read-only mode)
                 const owner = githubConfig.owner || 'Selland-Technologies';
@@ -227,7 +268,7 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        const content = JSON.parse(atob(data.content));
+                        const content = await decodeStorageContent(data.content);
                         setApiCards(content.cards || []);
                         setLastSyncTime(new Date());
                         setSyncStatus('✓ Synced');
@@ -268,7 +309,7 @@
                         if (getResponse.ok) {
                             const getData = await getResponse.json();
                             sha = getData.sha;
-                            const existingContent = JSON.parse(atob(getData.content));
+                            const existingContent = await decodeStorageContent(getData.content);
                             existingCards = existingContent.cards || [];
                         }
                     } catch (e) {
@@ -290,7 +331,16 @@
                         finalCards = Array.from(existingCardsMap.values());
                     }
 
-                    const content = btoa(JSON.stringify({ cards: finalCards, lastUpdated: new Date().toISOString() }, null, 2));
+                    const payload = { cards: finalCards, lastUpdated: new Date().toISOString() };
+                    const MAX_PAYLOAD_CHARS = 7 * 1024 * 1024;
+                    const payloadStr = JSON.stringify(payload, null, 2);
+                    if (payloadStr.length > MAX_PAYLOAD_CHARS) {
+                        setSyncStatus('✗ Save failed');
+                        setTimeout(() => setSyncStatus(''), 5000);
+                        alert('Content too large to sync.\n\nShorten the Response or Payload in your card(s), or store large samples in a separate file/link.');
+                        return;
+                    }
+                    const content = await encodeStorageContent(payload);
                     const response = await fetch(
                         `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubConfig.path}`,
                         {
